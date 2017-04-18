@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang='zh' xml:lang='zh'>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebChat</title>
+    <!--<link rel="stylesheet" href="../css/bootstrap.min.css">-->
+    <!--<script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>-->
+    <!--<script type="text/javascript" src="../js/jquery-ui.min.js"></script>-->
+    <!--<script type="text/javascript" src="../js/bootstrap.min.js"></script>-->
+    <!--<link rel="stylesheet" href="../css/jquery-ui.min.css">-->
+    <script type="text/javascript" src="/static/js/main.js"></script>
+</head>
+<body>
+<div>
+    <form action="/auth/login/" method="post" id="login_form">
+        <p>
+            <label for="username">Username</label>
+            <input class="text-input" id="username" name="username" type="text" value="">
+        </p>
+
+        <p>
+            <label for="password">Password&nbsp;</label>
+            <input class="text-input" id="password" name="password" type="password" value="">
+        </p>
+        <p>
+            <label>
+                <input type="submit" value="Login" style="margin-right: 100px;margin-left: 30px">
+            </label>
+            <label>
+                <input type="button" value="Register" onclick="location.href='/register'">
+            </label>
+        </p>
+    </form>
+</div>
+</body>
+</html>

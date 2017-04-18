@@ -8,3 +8,6 @@ User first create an id and use it to chat with others. The message is sent to s
 
 ### Server side
 Server accept register info and create id for user and transform message to receiver.
+
+## First Step
+Use tornado and simple html and finish job.

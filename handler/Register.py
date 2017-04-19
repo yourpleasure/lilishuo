@@ -1,19 +1,18 @@
 from tornado.web import RequestHandler
-import os
-public_root = os.path.join(os.path.dirname(__file__), '../static')
 
 
 class Register(RequestHandler):
     def data_received(self, chunk):
         pass
 
-    @staticmethod
-    def create_user(username, password):
-        print(username, password)
-        return True, None
+    async def create_user(self, username, password):
+        db = self.application.db
+        result = await db.User.insert_one({'_id': username, 'password': password})
+        if result is None:
+
 
     def get(self):
-        self.render(public_root + u"/html/register.html")
+        self.render(self.settings['static_path'] + u"/html/register.html")
 
     def post(self):
         username = self.get_argument("username", "")

@@ -1,20 +1,11 @@
-from tornado.web import RequestHandler
+from handler.base import BaseHandler
 from tornado.escape import json_encode, url_escape
-import os
-public_root = os.path.join(os.path.dirname(__file__), '../static')
-
-
-class BaseHandler(RequestHandler):
-    def data_received(self, chunk):
-        pass
-
-    def get_current_user(self):
-        return self.get_secure_cookie("user")
+from tornado.gen import coroutine
 
 
 class LoginHandler(BaseHandler):
     def get(self):
-        self.render(public_root + u"/html/login.html")
+        self.render(self.settings['static_path'] + u"/html/login.html")
 
     @staticmethod
     def check_permission(username, password):
@@ -22,6 +13,7 @@ class LoginHandler(BaseHandler):
             return True
         return False
 
+    @coroutine
     def post(self):
         username = self.get_argument("username", "")
         password = self.get_argument("password", "")

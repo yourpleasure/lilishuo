@@ -10,24 +10,39 @@
     <!--<script type="text/javascript" src="../js/jquery-ui.min.js"></script>-->
     <!--<script type="text/javascript" src="../js/bootstrap.min.js"></script>-->
     <!--<link rel="stylesheet" href="../css/jquery-ui.min.css">-->
-    <script type="text/javascript" src="../js/main.js"></script>
+    <script type="text/javascript" src="/static/js/main.js"></script>
+    <style>
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 30px;
+            width: 100%;
+            border: solid#000000;
+        }
+        .user_info {
+            position: fixed;
+            top: 30px;
+            left: 0;
+            width: 300px;
+            height: 100%;
+            border: solid#000000;
+        }
+        .message_info {
+            position: fixed;
+            top: 30px;
+            left: 300px;
+            right: 0;
+            height: 100%;
+            border: solid#000000;
+        }
+    </style>
 </head>
 <body>
 <div>
-    <p><label>帐号:
-        <input type="text">
-    </label></p>
-    <p><label>密码:
-        <input type="password">
-    </label></p>
-    <p>
-        <label>
-            <input type="submit" value="登录">
-        </label>
-        <label>
-            <input type="button" value="注册" onclick="location.href='/login.html'">
-        </label>
-    </p>
+    <div id="header" class="header" style="text-align: center;">LiuLiShuo</div>
+    <div id="user_info" class="user_info">123</div>
+    <div id="message_info" class="message_info">123</div>
 </div>
 </body>
 </html>

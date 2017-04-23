@@ -15,62 +15,38 @@ function destroy_websocket(){
     ws.send(JSON.stringify(message));
 }
 
-// function handle_add_friend(message) {
-//     alert(message['message']);
-//     var add_friend_input = document.getElementById("add_friend");
-//     if (message['result']){
-//         var tr = document.createElement('tr');
-//         tr.id = add_friend_input.value + "_tab";
-//         tr.addEventListener('click', show_message);
-//         tr.innerHTML = "<td>" + add_friend_input.value + "</td><td class='empty'>" + 0 + "</td>";
-//         $("#friend_list").prepend(tr);
-//     }
-//     add_friend_input.disabled = false;
-//     var submit_add_friend = document.getElementById("submit_add_friend");
-//     submit_add_friend.disabled = false;
-// }
-//
-// function handle_delete_friend(message) {
-//     alert(message['message']);
-//     var friend = current_message_friend_id;
-//     current_message_friend_id = null;
-//     if(message['err_code'] === 0){
-//         document.getElementById(friend + "_tab").remove();
-//     }
-//     document.getElementById("user_info").style.pointerEvents = 'auto';
-// }
-//
-// function show_message() {
-//     var friend_id = this.firstChild.innerText;
-//     var unread_message = parseInt(this.lastChild.innerText);
-//     var message_box_id = friend_id + "_info";
-//     var friend_message_div = document.getElementById(message_box_id);
-//     if (friend_message_div === null){
-//         if (current_message_friend_id !== null){
-//             document.getElementById(current_message_friend_id + "_info").style.display = 'none';
-//         }
-//         var $div = $("<div id="+ message_box_id+">").addClass("message_info");
-//         var message_box = $div.html($("#Hello_info").html().replace(/Hello/g, friend_id));
-//         document.getElementById("message_input").style.display = 'block';
-//         document.getElementById("delete_friend").style.display = 'block';
-//         $("#message_box_list").append($div);
-//         current_message_friend_id = friend_id;
-//     }
-//     else{
-//         if (current_message_friend_id !== null){
-//             document.getElementById(current_message_friend_id + "_info").style.display = 'none';
-//         }
-//         current_message_friend_id = friend_id;
-//         document.getElementById(current_message_friend_id + "_info").style.display = 'block';
-//     }
-// }
+function show_message() {
+    // TODO
+    var friend_id = this.firstChild.innerText;
+    var unread_message = parseInt(this.lastChild.innerText);
+    var message_box_id = friend_id + "_info";
+    var friend_message_div = document.getElementById(message_box_id);
+    if (friend_message_div === null){
+        if (current_message_friend_id !== null){
+            document.getElementById(current_message_friend_id + "_info").style.display = 'none';
+        }
+        var $div = $("<div id="+ message_box_id+">").addClass("message_info");
+        var message_box = $div.html($("#Hello_info").html().replace(/Hello/g, friend_id));
+        document.getElementById("message_input").style.display = 'block';
+        document.getElementById("delete_friend").style.display = 'block';
+        $("#message_box_list").append($div);
+        current_message_friend_id = friend_id;
+    }
+    else{
+        if (current_message_friend_id !== null){
+            document.getElementById(current_message_friend_id + "_info").style.display = 'none';
+        }
+        current_message_friend_id = friend_id;
+        document.getElementById(current_message_friend_id + "_info").style.display = 'block';
+    }
+}
 
 function handle_friend_list(friend_list, unread_message_numbers) {
     var friend_table = document.getElementById("friend_list");
     for (var i = 0; i < friend_list.length; i++) {
         var tr = document.createElement('tr');
         var unread_number = 0;
-        if (unread_message_numbers.hasOwnProperty([friend_list[i]])){
+        if (unread_message_numbers.hasOwnProperty(friend_list[i])){
             unread_number = unread_message_numbers[friend_list[i]];
         }
         tr.id = friend_list[i] + "_tab";
@@ -81,31 +57,115 @@ function handle_friend_list(friend_list, unread_message_numbers) {
 }
 
 
-function accept_friend_request() {
-    var friend_request_tab_id = this.parent().id;
-    var friend_id = friend_request_tab_id.substr(0, friend_request_tab_id.length - 5);
-
+function accept_friend_request(item) {
+    var friend_request_tab = item.parentElement.parentElement;
+    var friend_request_tab_id = friend_request_tab.id;
+    var friend_id = friend_request_tab_id.substr(0, friend_request_tab_id.length - 6);
+    document.getElementById("main").style.pointerEvents = 'none';
+    var data = {
+        'type': "accept",
+        'data': friend_id
+    };
+    $.ajax({
+        type: "POST",
+        url: "/api/user/",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (msg) {
+            document.getElementById("main").style.pointerEvents = 'auto';
+            if (msg['success'] === false){
+                alert(msg['message']);
+            }
+            else{
+                alert("Accept friend request");
+                var friend_table = document.getElementById("friend_list");
+                var tr = document.createElement('tr');
+                tr.id = friend_id + "_tab";
+                tr.addEventListener('click', show_message);
+                tr.innerHTML = "<td>" + friend_id + "</td><td class='empty'>" + 0 + "</td>";
+                friend_table.insertBefore(tr, friend_table.firstChild);
+                friend_request_tab.remove();
+                var friend_request_table = document.getElementById("friend_request_list");
+                if (friend_request_table.childElementCount > 0)
+                    document.getElementById("friend_request").innerText = "Friend Request(" + friend_request_table.childElementCount + ")";
+                else
+                    document.getElementById("friend_request").innerText = "Friend Request";
+            }
+        },
+        error: function (e) {
+            document.getElementById("main").style.pointerEvents = 'auto';
+            alert("Error " + e);
+        }
+    });
 }
 
-function reject_friend_request() {
-    //TODO
+function reject_friend_request(item) {
+    var friend_request_tab = item.parentElement.parentElement;
+    var friend_request_tab_id = friend_request_tab.id;
+    var friend_id = friend_request_tab_id.substr(0, friend_request_tab_id.length - 6);
+    document.getElementById("main").style.pointerEvents = 'none';
+    var data = {
+        'type': "reject",
+        'data': friend_id
+    };
+    $.ajax({
+        type: "POST",
+        url: "/api/user/",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (msg) {
+            document.getElementById("main").style.pointerEvents = 'auto';
+            if (msg['success'] === false){
+                alert(msg['message']);
+            }
+            else{
+                alert("Reject friend request");
+                friend_request_tab.remove();
+                var friend_request_table = document.getElementById("friend_request_list");
+                if (friend_request_table.childElementCount > 0)
+                    document.getElementById("friend_request").innerText = "Friend Request(" + friend_request_table.childElementCount + ")";
+                else
+                    document.getElementById("friend_request").innerText = "Friend Request";
+            }
+        },
+        error: function (e) {
+            document.getElementById("main").style.pointerEvents = 'auto';
+            alert("Error " + e);
+        }
+    });
 }
 
 function handle_friend_request_list(friend_request_list) {
-    var friend_request_table = document.getElementById("friend_add_request");
+    var friend_request_table = document.getElementById("friend_request_list");
     for (var i = 0; i < friend_request_list.length; i++) {
         var tr = document.createElement('tr');
         tr.id = friend_request_list[i] + "_retab";
-        tr.innerHTML = "<td>" + friend_request_list[i] + "</td><td><input type='button' value='Accept' onclick='accept_friend_request()'></td><td><input type='button' value='Reject' onclick='reject_friend_request()'></td>";
+        tr.innerHTML = "<td>" + friend_request_list[i] + "</td><td><input type='button' value='Accept' onclick='accept_friend_request(this)'></td><td><input type='button' value='Reject' onclick='reject_friend_request(this)'></td>";
         friend_request_table.appendChild(tr);
     }
-    friend_request_table.innerText = "Friend Request(" + friend_request_list + ")";
+    if (friend_request_table.childElementCount > 0)
+        document.getElementById("friend_request").innerText = "Friend Request(" + friend_request_table.childElementCount + ")";
 }
 
 function handle_friend_rejection_list(friend_rejection_list){
     for (var i = 0; i < friend_rejection_list.length; i++){
         alert("Add friend " + friend_rejection_list[i] + " rejected");
     }
+    var data = {
+        'type': 'clear_reject',
+        'data': friend_rejection_list
+    };
+    $.ajax({
+        type: "POST",
+        url: "/api/user/",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (msg) {
+        }
+    });
 }
 
 function handle_init(message) {
@@ -121,20 +181,88 @@ function handle_init(message) {
 }
 
 function handle_add_friend_request(friend_id) {
-    var friend_add_request = document.getElementById("friend_add_request");
+    var friend_add_request = document.getElementById("friend_request_list");
     var request_id = friend_id + "_retab";
     if (document.getElementById(request_id) !== null)
         return;
 
     var tr = document.createElement('tr');
     tr.id = request_id;
-    tr.innerHTML = "<td>" + friend_id + "</td><td><input type='button' value='Accept' onclick='accept_friend_request()'></td><td><input type='button' value='Reject' onclick='reject_friend_request()'></td>";
-    $("#friend_add_request").prepend(tr);
-    friend_add_request.innerText = "Friend Request(" + friend_add_request.childElementCount + ")";
+    tr.innerHTML = "<td>" + friend_id + "</td><td><input type='button' value='Accept' onclick='accept_friend_request(this)'></td><td><input type='button' value='Reject' onclick='reject_friend_request(this)'></td>";
+    friend_add_request.insertBefore(tr, friend_add_request.firstChild);
+    document.getElementById("friend_request").innerText = "Friend Request(" + friend_add_request.childElementCount + ")";
 }
 
 function handle_accept_friend_request(friend_id) {
     alert("Add friend " + friend_id + " success");
+    var tr = document.createElement('tr');
+    tr.id = friend_id + "_tab";
+    tr.addEventListener('click', show_message);
+    tr.innerHTML = "<td>" + friend_id + "</td><td class='empty'>" + 0 + "</td>";
+    var friend_list = document.getElementById("friend_list");
+    friend_list.insertBefore(tr, friend_list.firstChild);
+}
+
+function handle_reject_friend_request(friend_id) {
+    alert("Add friend " + friend_id + " rejected");
+    var data = {
+        'type': 'clear_reject',
+        'data': [friend_id]
+    };
+    $.ajax({
+        type: "POST",
+        url: "/api/user/",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (msg) {
+        }
+    });
+}
+
+function handle_delete_friend(friend_id) {
+    document.getElementById(friend_id + "_tab").remove();
+}
+
+function handle_send_message(friend_id) {
+    var friend_tab = document.getElementById(friend_id + "_tab");
+    var cell = friend_tab[1];
+    if (friend_id !== current_message_friend_id){
+        cell.innerText = parseInt(cell.innerText) + 1;
+        cell.classList.remove('empty');
+    }
+    else {
+        cell.innerText = 0;
+        cell.classList.add('empty');
+        var data = {
+            'friend_id': friend_id
+        };
+        $.ajax({
+            type: "GET",
+            url: "/api/message/",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (msg) {
+                if (msg['success']){
+                    var messages = msg['data'];
+                    var message_box_id = friend_id + "_message";
+                    var friend_message_div = document.getElementById(message_box_id);
+                    for (var i = 1; i < messages.length; i++){
+                        var message = messages[i];
+                        var p = document.createElement('p');
+                        p.id = Object.keys(message)[0];
+                        p.classList.add('other');
+                        p.innerText = Object.values(message)[0];
+                        friend_message_div.appendChild(p);
+                    }
+                }
+            },
+            error: function (e) {
+                alert("Error " + e);
+            }
+        });
+    }
 }
 
 function strategy1(p) {
@@ -147,24 +275,33 @@ function strategy1(p) {
             case "accept_friend_request":
                 handle_accept_friend_request(data.data);
                 break;
+            case "reject_friend_request":
+                handle_reject_friend_request(data.data);
+                break;
+            case "delete_friend":
+                handle_delete_friend(data.data);
+                break;
+            case "send_message":
+                handle_send_message(data.data);
+                break;
         }
     }
 }
-//
-//
+
+
 function add_friend() {
-    var add_friend_input = document.getElementById("add_friend");
-    var submit_add_friend = document.getElementById("submit_add_friend");
     var friend_id = document.getElementById("add_friend").value;
     document.getElementById("main").style.pointerEvents = 'none';
     var data = {
         'type': 'request',
-        'id': add_friend_input.value
+        'data': friend_id
     };
     $.ajax({
         type: "POST",
         url: "/api/user/",
-        data: data,
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
         success: function (msg) {
             document.getElementById("main").style.pointerEvents = 'auto';
             if (msg['success'] === false){
@@ -180,25 +317,74 @@ function add_friend() {
         }
     });
 }
-//
-//
-//
-// function delete_friend() {
-//     var friend_id = current_message_friend_id;
-//     document.getElementById("message_input").style.display = 'none';
-//     document.getElementById("delete_friend").style.display = 'none';
-//     document.getElementById(friend_id + "_info").remove();
-//     document.getElementById("user_info").style.pointerEvents = 'none';
-//     var message = {
-//         'type': 'delete_friend',
-//         'data': friend_id
-//     };
-//     ws.send(JSON.stringify(message));
-// }
-//
-// function send_massage() {
-//
-// }
+
+function delete_friend() {
+    var friend_id = current_message_friend_id;
+    document.getElementById("message_input").style.display = 'none';
+    document.getElementById("delete_friend").style.display = 'none';
+    document.getElementById(friend_id + "_tab").remove();
+    document.getElementById("main").style.pointerEvents = 'none';
+    var data = {
+        'data': friend_id
+    };
+    $.ajax({
+        type: "DELETE",
+        url: "/api/user/",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (msg) {
+            document.getElementById("main").style.pointerEvents = 'auto';
+            if (msg['success'] === false){
+                alert(msg['message']);
+            }
+            else{
+                alert("Delete friend " + friend_id);
+            }
+        },
+        error: function (e) {
+            document.getElementById("main").style.pointerEvents = 'auto';
+            alert("Error " + e);
+        }
+    });
+}
+
+function send_massage() {
+    // TODO
+    var message_area = document.getElementById("message_area");
+    var message = message_area.value;
+    message_area.value = "";
+    var timestamp = Date.now();
+    var data = {
+        'message': message,
+        'timestamp': timestamp,
+        'friend_id': current_message_friend_id
+    };
+    $.ajax({
+        type: "POST",
+        url: "/api/message/",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (msg) {
+            if (msg['success']){
+                var message_box_id = current_message_friend_id + "_message";
+                var friend_message_div = document.getElementById(message_box_id);
+                var p = document.createElement('p');
+                p.id = timestamp + "_" + document.getElementById('header').innerText;
+                p.classList.add('self');
+                p.innerText = message;
+                friend_message_div.appendChild(p);
+            }
+            else{
+                alert(msg['message']);
+            }
+        },
+        error: function (e) {
+            alert("Error " + e);
+        }
+    });
+}
 
 function strategy2() {
     alert("Unsupported browser");

@@ -33,14 +33,14 @@
             position: fixed;
             top: 30px;
             left: 0;
-            width: 300px;
+            width: 320px;
             height: 100%;
             border: solid#000000;
         }
         .message_info {
             position: fixed;
             top: 30px;
-            left: 300px;
+            left: 320px;
             right: 0;
             border: solid#000000;
         }
@@ -56,7 +56,7 @@
             height: 50px;
         }
         .message_text {
-            left: 300px;
+            left: 320px;
             right: 0;
             top: 80px;
             border: solid#000000;
@@ -76,13 +76,19 @@
             right: 0;
             height: 86px;
             border: solid#000000;
-            left: 300px;
+            left: 320px;
         }
         .send_button {
             position: fixed;
             height: 86px;
             bottom: 0;
             right: 0;
+        }
+        .self {
+            text-align: left;
+        }
+        .other {
+            text-align: right;
         }
     </style>
 </head>
@@ -94,7 +100,7 @@
         <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="active"><a href="#friends" data-toggle="tab" >Friends</a></li>
             <li role="presentation"><a href="#add_friend_tab" data-toggle="tab" >Add</a></li>
-            <li role="presentation"><a href="#friend_add_request" data-toggle="tab">Friend Request</a></li>
+            <li role="presentation"><a href="#friend_add_request" data-toggle="tab" id="friend_request">Friend Request</a></li>
         </ul>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="friends">

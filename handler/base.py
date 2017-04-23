@@ -64,7 +64,11 @@ class BaseHandler(RequestHandler):
             "success": False
         }
         try:
-            exist = await db.User.find_one_and_update({'_id': friend_id}, {'$addToSet': {'unread.friend_request': username}})
+            exist = await db.User.find_one_and_update(
+                {'_id': friend_id},
+                {'$addToSet': {'unread.friend_request': username}},
+                projection={'_id': 1}
+            )
             if exist is not None:
                 return result_success
             else:
@@ -100,6 +104,30 @@ class BaseHandler(RequestHandler):
             return result_fail
 
     @authenticated
+    async def check_id_in_friend_list(self, username, friend_id):
+        db = self.application.db
+        result_success = {
+            "success": True
+        }
+        result_fail = {
+            "success": False
+        }
+        try:
+            exist = await db.User.find_one({
+                '_id': username,
+                'unread.friend_request': {'$elemMatch': {"$eq": friend_id}}
+            })
+            if exist is not None:
+                return result_success
+            else:
+                result_fail['message'] = "Already in request list"
+                return result_fail
+        except Exception as e:
+            print("Exception: {0}".format(e))
+            result_fail['message'] = "Server Error"
+            return result_fail
+
+    @authenticated
     async def accept_add_friend(self, username, friend_id):
         db = self.application.db
         result_success = {
@@ -111,16 +139,98 @@ class BaseHandler(RequestHandler):
         try:
             result1 = await db.User.find_one_and_update(
                 {'_id': username},
-                {"$addToSet": {'friend_list': friend_id}, "$pullALL": {"unread.friend_request": friend_id}}
+                {"$addToSet": {'friend_list': friend_id}, "$pull": {"unread.friend_request": friend_id}},
+                projection={'_id': 1}
             )
             result2 = await db.User.find_one_and_update(
                 {'_id': friend_id},
-                {"$addToSet": {'friend_list': username}}
+                {"$addToSet": {'friend_list': username}},
+                projection={'_id': 1}
             )
-            # TODO
-            # if result2 is None, we need a revert of result1 op
             if result1 is None or result2 is None:
                 result_fail['message'] = "Accept friend request failed"
+                return result_fail
+            return result_success
+        except Exception as e:
+            print("Exception: {0}".format(e))
+            result_fail['message'] = "Server error"
+            return result_fail
+
+    @authenticated
+    async def reject_add_friend(self, username, friend_id):
+        db = self.application.db
+        result_success = {
+            "success": True
+        }
+        result_fail = {
+            "success": False
+        }
+        try:
+            result1 = await db.User.find_one_and_update(
+                {'_id': username},
+                {"$pull": {"unread.friend_request": friend_id}},
+                projection={'_id': 1}
+            )
+            result2 = await db.User.find_one_and_update(
+                {'_id': friend_id},
+                {"$addToSet": {"unread.friend_rejection": username}},
+                projection={'_id': 1}
+            )
+            if result1 is None or result2 is None:
+                result_fail['message'] = "Reject friend request failed"
+                return result_fail
+            return result_success
+        except Exception as e:
+            print("Exception: {0}".format(e))
+            result_fail['message'] = "Server error"
+            return result_fail
+
+    @authenticated
+    async def delete_friend(self, username, friend_id):
+        db = self.application.db
+        result_success = {
+            "success": True
+        }
+        result_fail = {
+            "success": False
+        }
+        try:
+            result1 = await db.User.find_one_and_update(
+                {'_id': username},
+                {"$pull": {"friend_list": friend_id}},
+                projection={'_id': 1}
+            )
+            result2 = await db.User.find_one_and_update(
+                {'_id': friend_id},
+                {"$pull": {"friend_list": username}},
+                projection={'_id': 1}
+            )
+            if result1 is None or result2 is None:
+                result_fail['message'] = "Delete friend failed"
+                return result_fail
+            return result_success
+        except Exception as e:
+            print("Exception: {0}".format(e))
+            result_fail['message'] = "Server error"
+            return result_fail
+
+    @authenticated
+    async def clear_reject(self, username, clear_list):
+        db = self.application.db
+        result_success = {
+            "success": True
+        }
+        result_fail = {
+            "success": False
+        }
+        try:
+            result = await db.User.find_one_and_update(
+                {'_id': username},
+                {"$pullAll": {"unread.friend_rejection": clear_list}},
+                projection={'_id': 1}
+            )
+            if result is None:
+                result_fail['message'] = "Delete reject info failed"
                 return result_fail
             return result_success
         except Exception as e:

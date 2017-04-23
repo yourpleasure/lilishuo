@@ -49,5 +49,5 @@ if __name__ == "__main__":
     mongo_conf = options.mongo_conf
     redis_conf = options.redis_conf
     http_server = HTTPServer(Application())
-    http_server.listen(8888, "127.0.0.1")
+    http_server.listen(8888, "192.168.1.2")
     IOLoop.instance().start()

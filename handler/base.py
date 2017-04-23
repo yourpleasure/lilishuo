@@ -115,8 +115,8 @@ class BaseHandler(RequestHandler):
         try:
             exist = await db.User.find_one({
                 '_id': username,
-                'unread.friend_request': {'$elemMatch': {"$eq": friend_id}}
-            })
+                'friend_list': {'$elemMatch': {"$eq": friend_id}}},
+                projection={'_id': 1})
             if exist is not None:
                 return result_success
             else:

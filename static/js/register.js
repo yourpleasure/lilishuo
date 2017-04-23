@@ -17,7 +17,7 @@ function register() {
         url: "/register",
         data: data,
         success: function (msg) {
-            var result = msg['result'];
+            var result = msg['success'];
             var alert_window = document.getElementById("alert_window");
             if (result){
                 alert_window.style.left = (window.outerWidth - $(".alert_window").width())/2 + "px";

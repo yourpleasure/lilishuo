@@ -8,6 +8,7 @@ from tornado.escape import xhtml_escape
 from handler.Auth import LoginHandler, LogoutHandler
 from api.Init import InitHandler
 from api.User import UserHandler
+from api.Message import MessageHandler
 from handler.Register import Register
 from handler.base import BaseHandler
 from handler.InfoHandler import InfoHandler
@@ -27,6 +28,8 @@ class Application(tornado.web.Application):
             url(r"/register", Register),
             url(r"/api/init/", InitHandler),
             url(r"/api/user/", UserHandler),
+            url(r"/api/message/(.*)/(history)?", MessageHandler),
+            url(r"/api/message/", MessageHandler),
             url(r"/websocket", InfoHandler),
             url(r"/static/(.*)", StaticFileHandler, dict(path=settings['static_path']))
         ]

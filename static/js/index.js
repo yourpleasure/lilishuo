@@ -15,8 +15,31 @@ function destroy_websocket(){
     ws.send(JSON.stringify(message));
 }
 
+function handle_history_message() {
+    var friend_id = current_message_friend_id;
+    $.ajax({
+        type: "GET",
+        url: "/api/message/"+friend_id+"/history",
+        success: function (msg) {
+            if (msg['success']){
+                var messages = msg['data'];
+                var message_box_id = friend_id + "_message";
+                var friend_message_div = document.getElementById(message_box_id);
+                for (var i = 0; i < messages.length; i++){
+                    var message = messages[i];
+                    var p = document.createElement('p');
+                    p.id = Object.keys(message)[0];
+                    p.classList.add('other');
+                    p.innerText = friend_id + ": " + Object.values(message)[0];
+                    friend_message_div.insertBefore(p, friend_message_div.firstChild);
+                }
+                friend_message_div.scrollTop = friend_message_div.scrollHeight;
+            }
+        }
+    });
+}
+
 function show_message() {
-    // TODO
     var friend_id = this.firstChild.innerText;
     var unread_message = parseInt(this.lastChild.innerText);
     var message_box_id = friend_id + "_info";
@@ -31,6 +54,8 @@ function show_message() {
         document.getElementById("delete_friend").style.display = 'block';
         $("#message_box_list").append($div);
         current_message_friend_id = friend_id;
+        handle_history_message();
+        handle_send_message(friend_id);
     }
     else{
         if (current_message_friend_id !== null){
@@ -38,6 +63,7 @@ function show_message() {
         }
         current_message_friend_id = friend_id;
         document.getElementById(current_message_friend_id + "_info").style.display = 'block';
+        handle_send_message(friend_id);
     }
 }
 
@@ -226,7 +252,7 @@ function handle_delete_friend(friend_id) {
 
 function handle_send_message(friend_id) {
     var friend_tab = document.getElementById(friend_id + "_tab");
-    var cell = friend_tab[1];
+    var cell = friend_tab.cells[1];
     if (friend_id !== current_message_friend_id){
         cell.innerText = parseInt(cell.innerText) + 1;
         cell.classList.remove('empty');
@@ -234,28 +260,23 @@ function handle_send_message(friend_id) {
     else {
         cell.innerText = 0;
         cell.classList.add('empty');
-        var data = {
-            'friend_id': friend_id
-        };
         $.ajax({
             type: "GET",
-            url: "/api/message/",
-            data: JSON.stringify(data),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
+            url: "/api/message/" + friend_id + "/",
             success: function (msg) {
                 if (msg['success']){
                     var messages = msg['data'];
                     var message_box_id = friend_id + "_message";
                     var friend_message_div = document.getElementById(message_box_id);
-                    for (var i = 1; i < messages.length; i++){
+                    for (var i = 0; i < messages.length; i++){
                         var message = messages[i];
                         var p = document.createElement('p');
                         p.id = Object.keys(message)[0];
                         p.classList.add('other');
-                        p.innerText = Object.values(message)[0];
+                        p.innerText = friend_id + ": " + Object.values(message)[0];
                         friend_message_div.appendChild(p);
                     }
+                    friend_message_div.scrollTop = friend_message_div.scrollHeight;
                 }
             },
             error: function (e) {
@@ -353,6 +374,9 @@ function send_massage() {
     // TODO
     var message_area = document.getElementById("message_area");
     var message = message_area.value;
+    if (message === ""){
+        return;
+    }
     message_area.value = "";
     var timestamp = Date.now();
     var data = {
@@ -371,10 +395,12 @@ function send_massage() {
                 var message_box_id = current_message_friend_id + "_message";
                 var friend_message_div = document.getElementById(message_box_id);
                 var p = document.createElement('p');
-                p.id = timestamp + "_" + document.getElementById('header').innerText;
+                var my_id = document.getElementById('header').innerText;
+                p.id = timestamp + "_" + my_id;
                 p.classList.add('self');
-                p.innerText = message;
+                p.innerText = my_id + ": " + message;
                 friend_message_div.appendChild(p);
+                friend_message_div.scrollTop = friend_message_div.scrollHeight;
             }
             else{
                 alert(msg['message']);

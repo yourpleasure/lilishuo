@@ -2,6 +2,8 @@ from tornado.web import authenticated
 from handler.base import BaseHandler
 from handler.InfoHandler import InfoHandler
 from tornado.escape import json_decode
+import logging
+import traceback
 
 
 class MessageHandler(BaseHandler):
@@ -15,32 +17,23 @@ class MessageHandler(BaseHandler):
             "success": False
         }
         try:
-            result1 = await db.User.find_one(
+            result = await db.User.find_one_and_update(
                 {'_id': username},
-                projection={'unread.message.' + friend_id: 1}
+                {"$unset": {'unread.message.' + friend_id: []}},
+                projection={'_id': 0, 'unread.message.' + friend_id: 1}
             )
             # noinspection PyBroadException
-            if result1 is None \
-                or result1.get('unread') is None \
-                    or result1['unread'].get('message') is None \
-                    or result1['unread']['message'].get(friend_id) is None:
-                result_success['data'] = []
-                return result_success
-
-            result2 = await db.User.find_one_and_update(
-                {'_id': username},
-                {'$push': {'message.'+friend_id: {"$each": message}},
-                 "$unset": {'unread.message.' + friend_id: ""},
-                 "$set": {"unread.unread_message_numbers."+friend_id: 0}},
-                projection={'_id': 1}
-            )
-            if result2 is None:
+            if result is None \
+                or result.get('unread') is None \
+                    or result['unread'].get('message') is None \
+                    or result['unread']['message'].get(friend_id) is None:
                 result_fail['message'] = "Get unread message failed"
                 return result_fail
-            result_success['data'] = message
+
+            result_success['data'] = result['unread']['message'][friend_id]
             return result_success
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail
 
@@ -80,7 +73,7 @@ class MessageHandler(BaseHandler):
                     result_success['data'] = message_data
                     return result_success
             except Exception as e:
-                print("Exception: {0}".format(e))
+                logging.exception(e)
                 result_fail['message'] = "Server error"
                 return result_fail
         else:
@@ -103,7 +96,7 @@ class MessageHandler(BaseHandler):
                     result_success['index'] = message_index
                     return result_success
             except Exception as e:
-                print("Exception: {0}".format(e))
+                logging.exception(e)
                 result_fail['message'] = "Server error"
                 return result_fail
 
@@ -142,7 +135,7 @@ class MessageHandler(BaseHandler):
             try:
                 message_index = int(message_index)
             except Exception as e:
-                print("Exception: {0}".format(e))
+                logging.exception(e)
                 result_fail['message'] = "unsupported query value"
                 self.write(result_fail)
                 self.flush()
@@ -182,12 +175,15 @@ class MessageHandler(BaseHandler):
         try:
             result1 = await db.User.find_one_and_update(
                 {'_id': username},
-                {'$push': {'message.'+friend_id: {message_id: message}}},
+                {'$push': {'message.'+friend_id: {'id': message_id, 'data': message}}},
                 projection={'_id': 1}
             )
             result2 = await db.User.find_one_and_update(
                 {'_id': friend_id},
-                {'$push': {'unread.message.'+username: {message_id: message}},
+                {'$push': {
+                    'unread.message.'+username: {'id': message_id, 'data': message},
+                    'message.'+username: {'id': message_id, 'data': message}
+                },
                  '$inc': {'unread.unread_message_numbers.'+username: 1}},
                 projection={'_id': 1}
             )
@@ -196,7 +192,7 @@ class MessageHandler(BaseHandler):
                 return result_fail
             return result_success
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail
 
@@ -231,7 +227,7 @@ class MessageHandler(BaseHandler):
                 try:
                     destination.write_message(message)
                 except Exception as e:
-                    print("Exception: {0}".format(e))
+                    logging.exception(e)
         self.write(result)
         self.flush()
         return
@@ -248,7 +244,7 @@ class MessageHandler(BaseHandler):
         try:
             result = await db.User.find_one_and_update(
                 {"_id": username},
-                {"$pull": {"message." + friend_id: message_id}},
+                {"$pull": {"message." + friend_id: {'id': message_id}}},
                 projection=({"_id": 1})
             )
             if result is not None:
@@ -256,7 +252,7 @@ class MessageHandler(BaseHandler):
             else:
                 result_fail['message'] = "Unknown error"
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
 
         return result_fail

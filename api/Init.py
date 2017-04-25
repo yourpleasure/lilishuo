@@ -1,5 +1,6 @@
 from tornado.web import authenticated
 from handler.base import BaseHandler
+import logging
 
 
 class InitHandler(BaseHandler):
@@ -32,7 +33,7 @@ class InitHandler(BaseHandler):
             self.write(result)
             self.flush()
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result = {
                 'success': False,
                 'message': 'Server error'

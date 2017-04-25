@@ -24,6 +24,7 @@ function handle_history_message() {
         message_number = parseInt(message_number);
     if (message_number === 0)
         return;
+    document.getElementById(friend_id + "_message").style.pointerEvents = 'none';
     $.ajax({
         type: "GET",
         url: "/api/message/"+friend_id+"/history?index=" + message_number,
@@ -38,9 +39,9 @@ function handle_history_message() {
                 for (var i = 0; i < messages.length; i++){
                     var message = messages[i];
                     var p = document.createElement('p');
-                    p.id = Object.keys(message)[0];
+                    p.id = message['id'];
                     p.style.border = "solid:#00000";
-                    p.innerText = friend_id + ": " + Object.values(message)[0];
+                    p.innerText = friend_id + ": " + message['data'];
                     if (p.id.match(friend_pattern))
                         p.classList.add('other');
                     else {
@@ -56,13 +57,19 @@ function handle_history_message() {
                 }
                 friend_message_div.scrollTop = friend_message_div.scrollHeight - scroll_top;
             }
+            document.getElementById(friend_id + "_message").style.pointerEvents = 'auto';
+        },
+        failure: function (msg) {
+            alert(msg);
+            document.getElementById(friend_id + "_message").style.pointerEvents = 'auto';
         }
     });
 }
 
 function test_and_send_message() {
-    var key = window.event.keyCode;
-    if (key === 13){
+    var event = window.event;
+    if (event.keyCode === 13){
+        event.preventDefault();
         send_massage();
     }
     document.getElementById("message_area");
@@ -91,6 +98,9 @@ function show_message() {
     else{
         if (current_message_friend_id !== null){
             document.getElementById(current_message_friend_id + "_info").style.display = 'none';
+        }else{
+            document.getElementById("message_input").style.display = 'block';
+            document.getElementById("delete_friend").style.display = 'block';
         }
         current_message_friend_id = friend_id;
         document.getElementById(current_message_friend_id + "_info").style.display = 'block';
@@ -305,9 +315,9 @@ function handle_send_message(friend_id) {
                     for (var i = 0; i < messages.length; i++){
                         var message = messages[i];
                         var p = document.createElement('p');
-                        p.id = Object.keys(message)[0];
+                        p.id = message['id'];
                         p.classList.add('other');
-                        p.innerText = friend_id + ": " + Object.values(message)[0];
+                        p.innerText = friend_id + ": " + message['data'];
                         friend_message_div.appendChild(p);
                     }
                     friend_message_div.scrollTop = friend_message_div.scrollHeight;
@@ -344,8 +354,9 @@ function strategy1(p) {
 }
 
 function test_and_add_friend() {
-    var key = window.event.keyCode;
-    if (key === 13){
+    var event = window.event;
+    if (event.keyCode === 13){
+        event.preventDefault();
         add_friend();
     }
 }
@@ -385,6 +396,7 @@ function delete_friend() {
     document.getElementById("delete_friend").style.display = 'none';
     document.getElementById(friend_id + "_tab").remove();
     document.getElementById("main").style.pointerEvents = 'none';
+    current_message_friend_id = null;
     var data = {
         'data': friend_id
     };
@@ -400,6 +412,7 @@ function delete_friend() {
                 alert(msg['message']);
             }
             else{
+                document.getElementById(friend_id + "_info").remove();
                 alert("Delete friend " + friend_id);
             }
         },
@@ -460,8 +473,10 @@ function send_massage() {
                 p.classList.add('self');
                 p.innerText = my_id + ": " + message;
                 var delete_message_input = document.createElement('button');
-                delete_message_input.value = "Delete";
+                var t = document.createTextNode("Delete");
                 delete_message_input.addEventListener('click', delete_message);
+                delete_message_input.appendChild(t);
+                p.appendChild(document.createElement('br'));
                 p.appendChild(delete_message_input);
                 friend_message_div.appendChild(p);
                 friend_message_div.scrollTop = friend_message_div.scrollHeight;

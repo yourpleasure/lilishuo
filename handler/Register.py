@@ -1,6 +1,7 @@
 from pymongo.errors import DuplicateKeyError
 from handler.base import BaseHandler
 import re
+import logging
 
 
 class Register(BaseHandler):
@@ -22,7 +23,7 @@ class Register(BaseHandler):
             result_fail['message'] = "Account already exists"
             return result_fail
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail
 

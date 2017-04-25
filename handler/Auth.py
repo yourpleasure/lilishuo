@@ -1,5 +1,6 @@
 from handler.base import BaseHandler
 from tornado.escape import url_escape
+import logging
 
 
 class LoginHandler(BaseHandler):
@@ -18,7 +19,7 @@ class LoginHandler(BaseHandler):
                 else:
                     return False, "Account or Password mismatch"
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             return False, "Server fault"
 
     async def post(self):

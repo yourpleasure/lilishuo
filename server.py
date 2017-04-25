@@ -17,6 +17,10 @@ from tornado.options import define, options
 
 define("mongo_conf", type=dict)
 define("redis_conf", type=dict)
+define('log_file_prefix', default='/tmp/test.log')
+define('log_rotate_mode', default='time')
+define('log_rotate_when', default='M')
+define('log_rotate_interval', default=1)
 
 
 class Application(tornado.web.Application):

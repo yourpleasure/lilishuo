@@ -1,5 +1,6 @@
 from tornado.websocket import WebSocketHandler
 import json
+import logging
 
 
 class BaseWebSocketHandler(WebSocketHandler):
@@ -16,23 +17,6 @@ class BaseWebSocketHandler(WebSocketHandler):
 class InfoHandler(BaseWebSocketHandler):
     clients = {}
 
-    async def clear_message_index(self, username):
-        db = self.application.db
-        result_success = {
-            "success": True,
-            "data": []
-        }
-        result_fail = {
-            "success": False
-        }
-        try:
-            await db.User.find_one_and_update(
-                {'_id': username},
-                {'$set': {"index": {}}}
-            )
-        except Exception as e:
-            print("Exception: {0}".format(e))
-
     async def open(self):
         user = self.get_secure_cookie("user").decode()
         if not user:
@@ -40,10 +24,6 @@ class InfoHandler(BaseWebSocketHandler):
         else:
             if user not in InfoHandler.clients:
                 InfoHandler.clients[user] = self
-                try:
-                    await self.clear_message_index(user)
-                except Exception as e:
-                    print("Exception: {0}".format(e))
             elif InfoHandler.clients[user] != self:
                 message = {
                     'type': 'control',
@@ -87,7 +67,7 @@ class InfoHandler(BaseWebSocketHandler):
                 result['data']['unread_message_number'] = unread.get('unread_message_number', {})
             self.write_message(result)
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             del result['data']
             result['success'] = False
             result['message'] = "Server Error"
@@ -103,5 +83,5 @@ class InfoHandler(BaseWebSocketHandler):
             message_dict = json.loads(message)
             await handler[message_dict['type']](message_dict['data'])
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
         return

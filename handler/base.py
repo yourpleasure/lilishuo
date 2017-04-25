@@ -1,5 +1,6 @@
 from tornado.web import RequestHandler
 from tornado.web import authenticated
+import logging
 
 
 class BaseHandler(RequestHandler):
@@ -28,7 +29,7 @@ class BaseHandler(RequestHandler):
             result_fail['message'] = "User not exists"
             return result_fail
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail
 
@@ -50,7 +51,7 @@ class BaseHandler(RequestHandler):
                 result_fail['message'] = "Already in friend_list"
                 return result_fail
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server Error"
             return result_fail
 
@@ -75,7 +76,7 @@ class BaseHandler(RequestHandler):
                 result_fail['message'] = "Add friend failed"
                 return result_fail
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server Error"
             return result_fail
 
@@ -99,7 +100,7 @@ class BaseHandler(RequestHandler):
                 result_fail['message'] = "Already in request list"
                 return result_fail
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server Error"
             return result_fail
 
@@ -123,7 +124,7 @@ class BaseHandler(RequestHandler):
                 result_fail['message'] = "Already in request list"
                 return result_fail
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server Error"
             return result_fail
 
@@ -152,7 +153,7 @@ class BaseHandler(RequestHandler):
                 return result_fail
             return result_success
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail
 
@@ -181,7 +182,7 @@ class BaseHandler(RequestHandler):
                 return result_fail
             return result_success
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail
 
@@ -210,7 +211,7 @@ class BaseHandler(RequestHandler):
                 return result_fail
             return result_success
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail
 
@@ -234,6 +235,6 @@ class BaseHandler(RequestHandler):
                 return result_fail
             return result_success
         except Exception as e:
-            print("Exception: {0}".format(e))
+            logging.exception(e)
             result_fail['message'] = "Server error"
             return result_fail

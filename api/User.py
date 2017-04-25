@@ -2,6 +2,7 @@ from tornado.web import authenticated
 from handler.base import BaseHandler
 from handler.InfoHandler import InfoHandler
 from tornado.escape import json_decode
+import logging
 
 
 class UserHandler(BaseHandler):
@@ -46,7 +47,7 @@ class UserHandler(BaseHandler):
             try:
                 destination.write_message(message)
             except Exception as e:
-                print("Exception: {0}".format(e))
+                logging.exception(e)
 
         return result_success
 
@@ -63,7 +64,7 @@ class UserHandler(BaseHandler):
                 try:
                     destination.write_message(message)
                 except Exception as e:
-                    print("Exception: {0}".format(e))
+                    logging.exception(e)
 
         return result
 
@@ -80,7 +81,7 @@ class UserHandler(BaseHandler):
                 try:
                     destination.write_message(message)
                 except Exception as e:
-                    print("Exception: {0}".format(e))
+                    logging.exception(e)
 
         return result
 
@@ -164,7 +165,7 @@ class UserHandler(BaseHandler):
                 try:
                     destination.write_message(message)
                 except Exception as e:
-                    print("Exception: {0}".format(e))
+                    logging.exception(e)
             self.write(result_success)
             self.flush()
             return

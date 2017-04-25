@@ -132,7 +132,7 @@
         <div id="Hello_message" class="message_text" onscroll="message_scroll(this)"></div>
     </div>
     <div id="message_input" class="message_input">
-        <label for="message_area"></label><textarea id="message_area" rows="4" cols="15" onkeyup="test_and_send_message()"></textarea>
+        <label for="message_area"></label><textarea id="message_area" rows="4" cols="15" onkeypress="test_and_send_message()"></textarea>
         <input id="send_button" type="button" class="send_button" value="Send" onclick="send_massage()">
     </div>
     <div id="delete_friend" style="text-align: right;display: none;" class="delete_friend" onclick="delete_friend()">Delete Friend</div>

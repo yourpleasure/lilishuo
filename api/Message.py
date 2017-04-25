@@ -20,9 +20,10 @@ class MessageHandler(BaseHandler):
                 projection={'unread.message.' + friend_id: 1}
             )
             # noinspection PyBroadException
-            try:
-                message = result1['unread']['message'][friend_id]
-            except Exception:
+            if result1 is None \
+                or result1.get('unread') is None \
+                    or result1['unread'].get('message') is None \
+                    or result1['unread']['message'].get(friend_id) is None:
                 result_success['data'] = []
                 return result_success
 
@@ -44,7 +45,7 @@ class MessageHandler(BaseHandler):
             return result_fail
 
     @authenticated
-    async def fetch_history_message(self, username, friend_id):
+    async def fetch_history_message(self, username, friend_id, message_index):
         db = self.application.db
         result_success = {
             "success": True,
@@ -53,72 +54,58 @@ class MessageHandler(BaseHandler):
         result_fail = {
             "success": False
         }
-        try:
-            result1 = await db.User.find_one(
-                {'_id': username},
-                projection={'index.' + friend_id: 1}
-            )
-            # noinspection PyBroadException
+        if message_index == -1:
             try:
-                index = result1['index'][friend_id]
-            except Exception:
-                all_message = await db.User.find_one(
-                    {'_id': username},
-                    projection={'message.' + friend_id: 1}
+                all_messages = await db.User.find_one(
+                    {"_id": username},
+                    projection={'_id': 0, "message." + friend_id: 1}
                 )
-                # noinspection PyBroadException
-                try:
-                    messages = all_message['message'][friend_id]
-                except Exception:
-                    return result_success
-                index = len(messages)
-                index -= 30
-                if index < 0:
-                    index = 0
-                try:
-                    await db.User.find_one_and_update(
-                        {'_id': username},
-                        {"$set": {"index.'" + friend_id+ "'": index}},
-                        projection={'_id': 1}
-                    )
-                except Exception as e:
-                    print("Exception: {0}".format(e))
-                result_success['data'] = messages[-30:]
-                return result_success
-
-            if index == 0:
-                return result_success
-            else:
-                index -= 30
-                if index < 0:
-                    number = 30 + index
-                    index = 0
+                if all_messages is None:
+                    result_fail['message'] = "Unknown error"
+                    return result_fail
                 else:
-                    number = 30
-            result2 = await db.User.find_one(
-                {'_id': username},
-                projection={'message.' + friend_id: {"$slice": [index, number]}}
-            )
-            try:
-                messages = result2['message'][friend_id]
+                    if all_messages.get("message") is None or all_messages['message'].get(friend_id) is None:
+                        message_index = 0
+                        message_data = []
+                    else:
+                        real_message = all_messages['message'][friend_id]
+                        message_number = len(real_message)
+                        if message_number >= 30:
+                            message_index = message_number - 30
+                            message_data = real_message[message_index - 30:]
+                        else:
+                            message_index = 0
+                            message_data = real_message
+                    result_success['index'] = message_index
+                    result_success['data'] = message_data
+                    return result_success
             except Exception as e:
                 print("Exception: {0}".format(e))
-                result_fail['message'] = "Unknown error"
+                result_fail['message'] = "Server error"
                 return result_fail
-            result_success['data'] = messages
+        else:
             try:
-                await db.User.find_one_and_update(
+                if message_index >= 30:
+                    fetch_number = 30
+                    message_index -= fetch_number
+                else:
+                    fetch_number = message_index
+                    message_index = 0
+                messages = await db.User.find_one(
                     {'_id': username},
-                    {"$set": {"index." + friend_id: index}},
-                    projection={'_id': 1}
+                    projection={'_id': 0, "message." + friend_id: {"$slice": [message_index, fetch_number]}}
                 )
+                if messages is None or messages.get('message') is None or messages['message'].get('friend') is None:
+                    result_fail['message'] = "Unknown error"
+                    return result_fail
+                else:
+                    result_success['data'] = messages['message'][friend_id]
+                    result_success['index'] = message_index
+                    return result_success
             except Exception as e:
                 print("Exception: {0}".format(e))
-            return result_success
-        except Exception as e:
-            print("Exception: {0}".format(e))
-            result_fail['message'] = "Server error"
-            return result_fail
+                result_fail['message'] = "Server error"
+                return result_fail
 
     @authenticated
     async def get(self, *args):
@@ -151,7 +138,22 @@ class MessageHandler(BaseHandler):
             self.flush()
             return
         elif args[1] == "history":
-            result = await self.fetch_history_message(username, friend_id)
+            message_index = self.get_query_argument("index")
+            try:
+                message_index = int(message_index)
+            except Exception as e:
+                print("Exception: {0}".format(e))
+                result_fail['message'] = "unsupported query value"
+                self.write(result_fail)
+                self.flush()
+                return
+            if message_index is None or message_index == 0:
+                result_fail['message'] = "Unsupported parameter or unsupported value"
+                self.write(result_fail)
+                self.flush()
+                return
+
+            result = await self.fetch_history_message(username, friend_id, message_index)
             self.write(result)
             self.flush()
             return
@@ -234,5 +236,56 @@ class MessageHandler(BaseHandler):
         self.flush()
         return
 
-    def delete(self, *args):
-        pass
+    @authenticated
+    async def delete_message(self, username, friend_id, message_id):
+        db = self.application.db
+        result_success = {
+            "success": True
+        }
+        result_fail = {
+            "success": False
+        }
+        try:
+            result = await db.User.find_one_and_update(
+                {"_id": username},
+                {"$pull": {"message." + friend_id: message_id}},
+                projection=({"_id": 1})
+            )
+            if result is not None:
+                return result_success
+            else:
+                result_fail['message'] = "Unknown error"
+        except Exception as e:
+            print("Exception: {0}".format(e))
+            result_fail['message'] = "Server error"
+
+        return result_fail
+
+    @authenticated
+    async def delete(self, *args):
+        username = self.get_current_user()
+        result_fail = {
+            'success': False
+        }
+        if username is None:
+            result_fail['message'] = 'Unknown User'
+            self.write(result_fail)
+            self.flush()
+            return
+
+        if len(args) != 2:
+            result_fail['message'] = "Url error"
+            self.write(result_fail)
+            self.flush()
+            return
+
+        friend_id = args[0]
+        message_id = self.get_query_argument("message_id")
+        if friend_id is None or message_id is None:
+            result_fail['message'] = "Parameter error"
+            return result_fail
+
+        result = await self.delete_message(username, friend_id, message_id)
+        self.write(result)
+        self.flush()
+        return

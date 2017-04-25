@@ -87,9 +87,13 @@
         }
         .self {
             text-align: left;
+            border: 2px solid red;
+            border-radius: 5px;
         }
         .other {
             text-align: right;
+            border: 2px solid blue;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -111,7 +115,7 @@
             <div role="tabpanel" class="tab-pane" id="add_friend_tab" style="font-size: x-small;">
                 <p>
                     <label for="add_friend">Add Friend: </label>
-                    <input type="text" id="add_friend">
+                    <input type="text" id="add_friend" onkeypress="test_and_add_friend()">
                     <input type="button" id="submit_add_friend" value="Submit" onclick="add_friend()">
                 </p>
             </div>
@@ -122,11 +126,13 @@
         </div>
     </div>
     <div id="Hello_info" class="message_info" style="display: none">
-        <div id="Hello_header" style="text-align: center;" class="message_header">Hello</div>
-        <div id="Hello_message" class="message_text"></div>
+        <div id="Hello_header" style="text-align: center;" class="message_header">Hello
+            <div id="Hello_message_number" style="display: none"></div>
+        </div>
+        <div id="Hello_message" class="message_text" onscroll="message_scroll(this)"></div>
     </div>
     <div id="message_input" class="message_input">
-        <label for="message_area"></label><textarea id="message_area" rows="4" cols="15"></textarea>
+        <label for="message_area"></label><textarea id="message_area" rows="4" cols="15" onkeyup="test_and_send_message()"></textarea>
         <input id="send_button" type="button" class="send_button" value="Send" onclick="send_massage()">
     </div>
     <div id="delete_friend" style="text-align: right;display: none;" class="delete_friend" onclick="delete_friend()">Delete Friend</div>

@@ -13,6 +13,7 @@ from handler.base import BaseHandler
 from handler.InfoHandler import InfoHandler
 from motor.motor_tornado import MotorClient
 from tornado.options import define, options
+import sys
 
 define("mongo_conf", type=dict)
 define('log_file_prefix', default='/tmp/test.log')
@@ -49,8 +50,12 @@ class MainHandler(BaseHandler):
 
 
 if __name__ == "__main__":
+    if sys.version_info[0] != 3 or sys.version_info[1] < 5:
+        print("This script requires Python version >= 3.5")
+        sys.exit(1)
+
     options.parse_config_file("conf/DBconf.py")
     mongo_conf = options.mongo_conf
     http_server = HTTPServer(Application())
-    http_server.listen(8888, "192.168.1.2")
+    http_server.listen(8888)
     IOLoop.instance().start()

@@ -23,6 +23,15 @@ The Server now use tornado framework and use mongo as backend database. Message 
 1. Receive message in chat view realtime.
 1. Update contact list view realtime.
 
+## Deploy
+This project can't support automatic deploy now. You should deploy in by hands. I will provide a automatic deploy method (docker) later.  
+Current deploy step:
+1. Run a mongodb and create a readwrite account with a proper username and password
+2. Change conf/DBconf.py and make sure program can read and write your specified db
+3. Make sure your python version is not lower than 3.5
+4. run `pip3 install -r requirements.txt`
+5. run `python3 server` and then you can use browser to view the website. The port is 8888 by default.
+
 
 ## Short hand
 1. Use mongodb as backend database and store all information of a user in one document. This may be inefficient.

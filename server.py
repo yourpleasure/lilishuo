@@ -1,6 +1,5 @@
 import tornado
 from tornado.web import url, StaticFileHandler, authenticated
-from redis import StrictRedis
 from tornado.httpserver import HTTPServer
 from conf.Settings import settings
 from tornado.ioloop import IOLoop
@@ -16,7 +15,6 @@ from motor.motor_tornado import MotorClient
 from tornado.options import define, options
 
 define("mongo_conf", type=dict)
-define("redis_conf", type=dict)
 define('log_file_prefix', default='/tmp/test.log')
 define('log_rotate_mode', default='time')
 define('log_rotate_when', default='M')
@@ -41,7 +39,6 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
         self.db = MotorClient(mongo_conf['url'])[mongo_conf['database']]
-        self.redis = StrictRedis(redis_conf)
 
 
 class MainHandler(BaseHandler):
@@ -54,7 +51,6 @@ class MainHandler(BaseHandler):
 if __name__ == "__main__":
     options.parse_config_file("conf/DBconf.py")
     mongo_conf = options.mongo_conf
-    redis_conf = options.redis_conf
     http_server = HTTPServer(Application())
     http_server.listen(8888, "192.168.1.2")
     IOLoop.instance().start()

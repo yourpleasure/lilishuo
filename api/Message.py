@@ -47,7 +47,7 @@ class MessageHandler(BaseHandler):
         result_fail = {
             "success": False
         }
-        if message_index == -1:
+        if message_index < 0:
             try:
                 all_messages = await db.User.find_one(
                     {"_id": username},
@@ -63,9 +63,9 @@ class MessageHandler(BaseHandler):
                     else:
                         real_message = all_messages['message'][friend_id]
                         message_number = len(real_message)
-                        if message_number >= 30:
-                            message_index = message_number - 30
-                            message_data = real_message[message_index - 30:]
+                        if message_number >= 29 - message_index:
+                            message_index = message_number - 29 + message_index
+                            message_data = real_message[message_index:]
                         else:
                             message_index = 0
                             message_data = real_message

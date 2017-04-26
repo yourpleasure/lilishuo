@@ -18,8 +18,13 @@ function destroy_websocket(){
 function handle_history_message() {
     var friend_id = current_message_friend_id;
     var message_number = document.getElementById(friend_id + "_message_number").innerText;
-    if (message_number === "")
-        message_number = -1;
+    if (message_number === "") {
+        var friend_tab = document.getElementById(friend_id + "_tab");
+        var cell = friend_tab.cells[1];
+        var unread_message_number = parseInt(cell.innerText);
+        message_number = (-1) * unread_message_number - 1;
+        cell.innerText = 0;
+    }
     else
         message_number = parseInt(message_number);
     if (message_number === 0)
@@ -104,11 +109,10 @@ function show_message() {
         }
         current_message_friend_id = friend_id;
         document.getElementById(current_message_friend_id + "_info").style.display = 'block';
+        var unread_message = parseInt(this.lastChild.innerText);
+        if (unread_message !== 0)
+            handle_send_message(friend_id);
     }
-
-    var unread_message = parseInt(this.lastChild.innerText);
-    if (unread_message !== 0)
-        handle_send_message(friend_id);
 }
 
 function handle_friend_list(friend_list, unread_message_numbers) {

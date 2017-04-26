@@ -24,6 +24,7 @@ function handle_history_message() {
         var unread_message_number = parseInt(cell.innerText);
         message_number = (-1) * unread_message_number - 1;
         cell.innerText = 0;
+        cell.classList.add('empty');
     }
     else
         message_number = parseInt(message_number);
@@ -41,7 +42,7 @@ function handle_history_message() {
                 var scroll_top = friend_message_div.scrollTop;
                 var friend_pattern = new RegExp("^\\d+_" + friend_id + "$");
                 document.getElementById(friend_id + "_message_number").innerText = msg['index'];
-                for (var i = 0; i < messages.length; i++){
+                for (var i = messages.length - 1; i >= 0; i--){
                     var message = messages[i];
                     var p = document.createElement('p');
                     p.id = message['id'];
@@ -125,7 +126,12 @@ function handle_friend_list(friend_list, unread_message_numbers) {
         }
         tr.id = friend_list[i] + "_tab";
         tr.addEventListener('click', show_message);
-        tr.innerHTML = "<td>" + friend_list[i] + "</td><td class='empty'>" + unread_number + "</td>";
+        if (unread_number === 0) {
+            tr.innerHTML = "<td>" + friend_list[i] + "</td><td class='empty'>" + unread_number + "</td>";
+        }
+        else{
+            tr.innerHTML = "<td>" + friend_list[i] + "</td><td>" + unread_number + "</td>";
+        }
         friend_table.appendChild(tr);
     }
 }

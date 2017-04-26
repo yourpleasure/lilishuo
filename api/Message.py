@@ -19,7 +19,8 @@ class MessageHandler(BaseHandler):
         try:
             result = await db.User.find_one_and_update(
                 {'_id': username},
-                {"$unset": {'unread.message.' + friend_id: []}},
+                {"$unset": {'unread.message.' + friend_id: []},
+                 '$set': {'unread.unread_message_numbers.'+friend_id: 0}},
                 projection={'_id': 0, 'unread.message.' + friend_id: 1}
             )
             # noinspection PyBroadException
@@ -49,8 +50,10 @@ class MessageHandler(BaseHandler):
         }
         if message_index < 0:
             try:
-                all_messages = await db.User.find_one(
+                all_messages = await db.User.find_one_and_update(
                     {"_id": username},
+                    {"$unset": {'unread.message.' + friend_id: []},
+                     '$set': {'unread.unread_message_numbers.'+friend_id: 0}},
                     projection={'_id': 0, "message." + friend_id: 1}
                 )
                 if all_messages is None:

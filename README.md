@@ -34,9 +34,10 @@ Current deploy step:
 
 
 ## Short hand
+1. Don't perform websocket ping and can handle window onclose and window onbeforeunload event but can't clear client state when other event occur.
 1. Use mongodb as backend database and store all information of a user in one document. This may be inefficient.
 1. Don't encrypt password and message. This can be unsafe.
 1. Don't use https. This can be unsafe.
-1. Can't do test in browser that can't support websocket.
-1. Don't test in big pressure.
+1. Don't do test in browser that can't support websocket.
+1. Haven't test in big pressure.
 1. Don't perform atomic operation when we should. Some error may occur.
